@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(npm run build:*)",
+      "Bash(php artisan test:*)",
+      "Bash(php artisan route:list:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
