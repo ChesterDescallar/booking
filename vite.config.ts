@@ -4,7 +4,7 @@ import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
     plugins: [
         laravel({
             input: ['resources/js/app.ts'],
@@ -20,8 +20,9 @@ export default defineConfig({
                 },
             },
         }),
-        wayfinder({
+        // Only use wayfinder in development to prevent CI build failures
+        ...(mode === 'development' ? [wayfinder({
             formVariants: true,
-        }),
+        })] : []),
     ],
-});
+}));
