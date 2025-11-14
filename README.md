@@ -32,8 +32,8 @@ This application provides a complete solution for managing bookings with real-ti
 ### Backend
 - **[Laravel 12](https://laravel.com/)** - Latest PHP framework with modern features
 - **PHP 8.2+** - Modern PHP with type safety and performance improvements
-- **MySQL** - Robust relational database for data persistence
-- **RESTful API** - Clean, resourceful API architecture
+- **SQLite** - Lightweight database perfect for demos and small deployments (easily switchable to MySQL/PostgreSQL)
+- **RESTful API** - Clean, resourceful API architecture with Laravel API Resources
 
 ### Frontend
 - **[Vue 3](https://vuejs.org/)** - Progressive JavaScript framework with Composition API
@@ -45,7 +45,7 @@ This application provides a complete solution for managing bookings with real-ti
 
 ### Testing
 - **PHPUnit** - PHP testing framework
-- **Feature Tests** - Complete test coverage (12 tests, 30 assertions)
+- **Feature Tests** - Complete test coverage (11 tests, 29 assertions)
 - **SQLite** - In-memory database for fast testing
 
 ## Installation
@@ -53,11 +53,9 @@ This application provides a complete solution for managing bookings with real-ti
 ### Prerequisites
 
 Ensure you have the following installed:
-- PHP 8.2 or higher
+- PHP 8.2 or higher with SQLite extension
 - Composer
-- Node.js 18+ and npm
-- MySQL 5.7+ or MariaDB
-- Web server (Apache/Nginx) or Laravel Valet/Herd
+- Node.js 20+ and npm
 
 ### Quick Start
 
@@ -76,29 +74,30 @@ Ensure you have the following installed:
 3. **Configure environment**
    ```bash
    cp .env.example .env
-   ```
-
-   Edit `.env` and configure your database:
-   ```env
-   DB_CONNECTION=mysql
-   DB_HOST=127.0.0.1
-   DB_PORT=3306
-   DB_DATABASE=bookingapp
-   DB_USERNAME=
-   DB_PASSWORD=
-   ```
-
-4. **Generate application key**
-   ```bash
    php artisan key:generate
    ```
 
-5. **Run migrations**
+4. **Set up demo database**
+
+   **Windows:**
    ```bash
-   php artisan migrate
+   setup-demo.bat
    ```
 
-6. **Build frontend assets**
+   **Linux/Mac:**
+   ```bash
+   chmod +x setup-demo.sh
+   ./setup-demo.sh
+   ```
+
+   **Or manually:**
+   ```bash
+   touch database/database.sqlite
+   php artisan migrate:fresh
+   php artisan db:seed --class=DemoDataSeeder
+   ```
+
+5. **Build frontend assets**
    ```bash
    npm run build
    ```
@@ -122,15 +121,27 @@ This will start the Vite development server with automatic reloading when you ma
 
 ## Usage
 
-### First Time Setup
+### Demo Data
 
-The application includes **auto-login for development** purposes. When you first visit the application:
+The application comes pre-loaded with demo data for immediate testing:
 
-- A default user is automatically created with:
-  - **Email**: `admin@example.com`
-  - **Password**: `password`
-- You are automatically logged in
-- This allows immediate testing without setting up authentication
+**5 Demo Users** (Password: `password` for all):
+- john@example.com (John Smith)
+- sarah@example.com (Sarah Johnson)
+- michael@example.com (Michael Brown)
+- emily@example.com (Emily Davis)
+- admin@example.com (Admin User) - Auto-login in development
+
+**5 Demo Clients:**
+- Acme Corporation
+- Tech Solutions Inc
+- Global Enterprises
+- Innovate Labs
+- Creative Studios
+
+**7 Sample Bookings** spanning the next 8 days with various users and clients.
+
+The application includes **auto-login for development** - you'll be automatically logged in as admin@example.com when you visit the app
 
 ### Creating a Booking
 
@@ -261,10 +272,86 @@ The weekly filtering feature:
 - Includes week start/end dates in response
 
 
+## Deployment
+
+### Using SQLite in Production
+
+SQLite is already configured and ready to deploy! It's perfect for:
+- Demo applications
+- Small to medium traffic sites
+- Single-server deployments
+- Easy backups (just copy the database file)
+
+To use SQLite in production, your `.env` already has:
+```env
+DB_CONNECTION=sqlite
+```
+
+The database file is at `database/database.sqlite` and is automatically created when you run migrations.
+
+### Switching to PostgreSQL/MySQL
+
+For high-traffic production environments, update `.env`:
+
+```env
+DB_CONNECTION=pgsql  # or mysql
+DB_HOST=your-host
+DB_PORT=5432        # or 3306 for MySQL
+DB_DATABASE=your-database
+DB_USERNAME=your-username
+DB_PASSWORD=your-password
+```
+
+Then run:
+```bash
+php artisan migrate:fresh
+php artisan db:seed --class=DemoDataSeeder
+```
+
+### Deployment Platforms
+
+**Recommended Platforms:**
+
+1. **Railway.app** (Easiest)
+   - Connects to GitHub automatically
+   - Auto-detects Laravel projects
+   - Provides free PostgreSQL database
+   - One-click deployment
+   - Free tier available
+
+2. **Render.com**
+   - Free tier available
+   - Auto-deploy from GitHub
+   - Built-in database options
+   - Simple configuration
+
+3. **Fly.io**
+   - Free allowance
+   - Global deployment
+   - Good for SQLite apps
+   - Simple CLI: `fly launch && fly deploy`
+
+4. **DigitalOcean App Platform**
+   - $5/month
+   - Easy Laravel deployment
+   - Managed databases available
+
+### Deployment Checklist
+
+Before deploying:
+- [ ] Set `APP_ENV=production` in `.env`
+- [ ] Set `APP_DEBUG=false` in `.env`
+- [ ] Generate new `APP_KEY`: `php artisan key:generate`
+- [ ] Run `npm run build` to compile production assets
+- [ ] Run migrations: `php artisan migrate --force`
+- [ ] Seed demo data: `php artisan db:seed --class=DemoDataSeeder`
+- [ ] Disable auto-login in routes/web.php for production
+
 ### CI/CD Configuration
 
-The application is configured for GitLab CI/CD:
-- Automated testing on push
+The application is ready for CI/CD:
+- Vite wayfinder plugin conditionally loads (dev only)
+- Tests run on SQLite in-memory database
 - Build process optimized for production
-- Vite wayfinder plugin disabled in CI to prevent build failures
+- All assets compile without external dependencies
 
