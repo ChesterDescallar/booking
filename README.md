@@ -84,8 +84,8 @@ Ensure you have the following installed:
    DB_HOST=127.0.0.1
    DB_PORT=3306
    DB_DATABASE=bookingapp
-   DB_USERNAME=root
-   DB_PASSWORD=your_password
+   DB_USERNAME=
+   DB_PASSWORD=
    ```
 
 4. **Generate application key**
