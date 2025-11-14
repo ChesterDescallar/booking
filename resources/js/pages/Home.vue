@@ -1,409 +1,3 @@
-<script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
-import { Head } from '@inertiajs/vue3'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { DateTimePicker } from '@/components/ui/date-picker'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-
-// API base URL
-const API_BASE = '/dashboard/projects/bookingapplication/booking/public/api'
-
-interface User {
-  id: number
-  name: string
-  email: string
-}
-
-interface Client {
-  id: number
-  name: string
-  email: string | null
-  phone: string | null
-  bookings_count?: number
-}
-
-interface Booking {
-  id: number
-  user_id: number
-  title: string
-  description: string | null
-  start_time: string
-  end_time: string
-  client_id: number
-  user?: User
-  client?: Client
-}
-
-// Helper function to get CSRF token
-const getCsrfToken = (): string => {
-  const token = document.head.querySelector('meta[name="csrf-token"]')
-  return token ? (token as HTMLMetaElement).content : ''
-}
-
-// Helper function to make authenticated requests
-const fetchWithCsrf = async (url: string, options: RequestInit = {}) => {
-  const headers = {
-    'Accept': 'application/json',
-    'X-CSRF-TOKEN': getCsrfToken(),
-    ...options.headers,
-  }
-  return fetch(url, { ...options, headers })
-}
-
-const bookings = ref<Booking[]>([])
-const clients = ref<Client[]>([])
-const users = ref<User[]>([])
-const isLoadingBookings = ref(false)
-const isLoadingClients = ref(false)
-const activeTab = ref<'bookings' | 'clients'>('bookings')
-const error = ref<string | null>(null)
-const success = ref<string | null>(null)
-
-// Weekly filter
-const selectedWeekDate = ref<Date | null>(null)
-const selectedWeekDateString = ref<string>('')
-const weekInfo = ref<{ week_start: string; week_end: string } | null>(null)
-
-// Booking form
-const showBookingDialog = ref(false)
-const bookingFormError = ref<string | null>(null)
-const bookingForm = ref({
-  id: null as number | null,
-  user_id: '',
-  title: '',
-  description: '',
-  client_id: '',
-  start_time: '',
-  end_time: '',
-})
-
-// Client form
-const showClientDialog = ref(false)
-const clientForm = ref({
-  id: null as number | null,
-  name: '',
-  email: '',
-  phone: '',
-})
-
-// Delete confirmation
-const showDeleteDialog = ref(false)
-const deleteItem = ref<{ type: 'booking' | 'client'; id: number } | null>(null)
-
-const fetchBookings = async () => {
-  isLoadingBookings.value = true
-  error.value = null
-  try {
-    let url = `${API_BASE}/bookings`
-
-    // If a week is selected, add it as a query parameter
-    if (selectedWeekDate.value) {
-      const weekDate = selectedWeekDate.value.toISOString().split('T')[0]
-      url += `?week=${weekDate}`
-    }
-
-    const response = await fetchWithCsrf(url)
-    if (!response.ok) throw new Error('Failed to fetch bookings')
-
-    const data = await response.json()
-
-    // Handle both formats (direct array or object with bookings property)
-    if (Array.isArray(data)) {
-      bookings.value = data
-      weekInfo.value = null
-    } else {
-      bookings.value = data.bookings || []
-      weekInfo.value = {
-        week_start: data.week_start,
-        week_end: data.week_end,
-      }
-    }
-  } catch (e: any) {
-    error.value = e.message || 'Failed to load bookings'
-  } finally {
-    isLoadingBookings.value = false
-  }
-}
-
-const fetchClients = async () => {
-  isLoadingClients.value = true
-  error.value = null
-  try {
-    const response = await fetchWithCsrf(`${API_BASE}/clients`)
-    if (!response.ok) throw new Error('Failed to fetch clients')
-    clients.value = await response.json()
-  } catch (e: any) {
-    error.value = e.message || 'Failed to load clients'
-  } finally {
-    isLoadingClients.value = false
-  }
-}
-
-const fetchUsers = async () => {
-  try {
-    const response = await fetchWithCsrf(`${API_BASE}/users`)
-    if (!response.ok) throw new Error('Failed to fetch users')
-    users.value = await response.json()
-  } catch (e: any) {
-    console.error('Failed to load users:', e.message)
-  }
-}
-
-const saveBooking = async () => {
-  bookingFormError.value = null
-  try {
-    const url = bookingForm.value.id
-      ? `${API_BASE}/bookings/${bookingForm.value.id}`
-      : `${API_BASE}/bookings`
-    const method = bookingForm.value.id ? 'PUT' : 'POST'
-
-    const response = await fetchWithCsrf(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user_id: parseInt(bookingForm.value.user_id),
-        title: bookingForm.value.title,
-        description: bookingForm.value.description || null,
-        client_id: parseInt(bookingForm.value.client_id),
-        start_time: bookingForm.value.start_time,
-        end_time: bookingForm.value.end_time,
-      }),
-    })
-
-    if (!response.ok) {
-      const data = await response.json()
-      // Extract validation errors from Laravel response
-      if (data.errors) {
-        // Get the first error message from the errors object
-        const firstError = Object.values(data.errors)[0]
-        throw new Error(Array.isArray(firstError) ? firstError[0] : firstError)
-      }
-      throw new Error(data.message || 'Failed to save booking')
-    }
-
-    success.value = bookingForm.value.id
-      ? 'Booking updated successfully!'
-      : 'Booking created successfully!'
-    showBookingDialog.value = false
-    resetBookingForm()
-    await fetchBookings()
-  } catch (e: any) {
-    bookingFormError.value = e.message || 'Failed to save booking'
-  }
-}
-
-const saveClient = async () => {
-  error.value = null
-  success.value = null
-  try {
-    const url = clientForm.value.id
-      ? `${API_BASE}/clients/${clientForm.value.id}`
-      : `${API_BASE}/clients`
-    const method = clientForm.value.id ? 'PUT' : 'POST'
-
-    const response = await fetchWithCsrf(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: clientForm.value.name,
-        email: clientForm.value.email || null,
-        phone: clientForm.value.phone || null,
-      }),
-    })
-
-    if (!response.ok) {
-      const data = await response.json()
-      throw new Error(data.message || 'Failed to save client')
-    }
-
-    success.value = clientForm.value.id
-      ? 'Client updated successfully!'
-      : 'Client created successfully!'
-    showClientDialog.value = false
-    resetClientForm()
-    await fetchClients()
-  } catch (e: any) {
-    error.value = e.message || 'Failed to save client'
-  }
-}
-
-const confirmDelete = async () => {
-  if (!deleteItem.value) return
-
-  error.value = null
-  success.value = null
-  const itemType = deleteItem.value.type
-  try {
-    const url =
-      deleteItem.value.type === 'booking'
-        ? `${API_BASE}/bookings/${deleteItem.value.id}`
-        : `${API_BASE}/clients/${deleteItem.value.id}`
-
-    const response = await fetchWithCsrf(url, {
-      method: 'DELETE',
-    })
-
-    if (!response.ok) throw new Error(`Failed to delete ${deleteItem.value.type}`)
-
-    success.value = `${deleteItem.value.type === 'booking' ? 'Booking' : 'Client'} deleted successfully!`
-    showDeleteDialog.value = false
-    deleteItem.value = null
-
-    if (itemType === 'booking') {
-      await fetchBookings()
-    } else {
-      await fetchClients()
-    }
-  } catch (e: any) {
-    error.value = e.message || 'Failed to delete item'
-  }
-}
-
-const editBooking = (booking: Booking) => {
-  bookingForm.value = {
-    id: booking.id,
-    user_id: booking.user_id.toString(),
-    title: booking.title,
-    description: booking.description || '',
-    client_id: booking.client_id.toString(),
-    start_time: booking.start_time.slice(0, 16),
-    end_time: booking.end_time.slice(0, 16),
-  }
-  showBookingDialog.value = true
-}
-
-const editClient = (client: Client) => {
-  clientForm.value = {
-    id: client.id,
-    name: client.name,
-    email: client.email || '',
-    phone: client.phone || '',
-  }
-  showClientDialog.value = true
-}
-
-const openDeleteDialog = (type: 'booking' | 'client', id: number) => {
-  deleteItem.value = { type, id }
-  showDeleteDialog.value = true
-}
-
-const resetBookingForm = () => {
-  bookingFormError.value = null
-  bookingForm.value = {
-    id: null,
-    user_id: '',
-    title: '',
-    description: '',
-    client_id: '',
-    start_time: '',
-    end_time: '',
-  }
-}
-
-const resetClientForm = () => {
-  clientForm.value = {
-    id: null,
-    name: '',
-    email: '',
-    phone: '',
-  }
-}
-
-const formatDateTime = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-const sortedBookings = computed(() => {
-  return [...bookings.value].sort((a, b) => {
-    return new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
-  })
-})
-
-const formatWeekRange = computed(() => {
-  if (!weekInfo.value) return null
-
-  const start = new Date(weekInfo.value.week_start)
-  const end = new Date(weekInfo.value.week_end)
-
-  const formatOptions: Intl.DateTimeFormatOptions = {
-    month: 'short',
-    day: 'numeric',
-  }
-
-  return `${start.toLocaleDateString('en-US', formatOptions)} - ${end.toLocaleDateString('en-US', formatOptions)}, ${end.getFullYear()}`
-})
-
-const clearWeekFilter = () => {
-  selectedWeekDate.value = null
-  selectedWeekDateString.value = ''
-}
-
-const handleWeekDateChange = (event: Event) => {
-  const input = event.target as HTMLInputElement
-  selectedWeekDateString.value = input.value
-  if (input.value) {
-    selectedWeekDate.value = new Date(input.value + 'T00:00:00')
-  } else {
-    selectedWeekDate.value = null
-  }
-}
-
-// Watch for changes in selected week date
-watch(selectedWeekDate, () => {
-  fetchBookings()
-})
-
-onMounted(() => {
-  fetchBookings()
-  fetchClients()
-  fetchUsers()
-})
-</script>
-
 <template>
   <Head title="Booking System" />
 
@@ -728,3 +322,416 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, onMounted, computed, watch } from 'vue'
+import { Head } from '@inertiajs/vue3'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { DateTimePicker } from '@/components/ui/date-picker'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+
+// API base URL
+const API_BASE = '/dashboard/projects/bookingapplication/booking/public/api'
+
+interface User {
+  id: number
+  name: string
+  email: string
+}
+
+interface Client {
+  id: number
+  name: string
+  email: string | null
+  phone: string | null
+  bookings_count?: number
+}
+
+interface Booking {
+  id: number
+  user_id: number
+  title: string
+  description: string | null
+  start_time: string
+  end_time: string
+  client_id: number
+  user?: User
+  client?: Client
+}
+
+// Helper function to get CSRF token
+const getCsrfToken = (): string => {
+  const token = document.head.querySelector('meta[name="csrf-token"]')
+  return token ? (token as HTMLMetaElement).content : ''
+}
+
+// Helper function to make authenticated requests
+const fetchWithCsrf = async (url: string, options: RequestInit = {}) => {
+  const headers = {
+    'Accept': 'application/json',
+    'X-CSRF-TOKEN': getCsrfToken(),
+    ...options.headers,
+  }
+  return fetch(url, { ...options, headers })
+}
+
+const bookings = ref<Booking[]>([])
+const clients = ref<Client[]>([])
+const users = ref<User[]>([])
+const isLoadingBookings = ref(false)
+const isLoadingClients = ref(false)
+const activeTab = ref<'bookings' | 'clients'>('bookings')
+const error = ref<string | null>(null)
+const success = ref<string | null>(null)
+
+// Weekly filter
+const selectedWeekDate = ref<Date | null>(null)
+const selectedWeekDateString = ref<string>('')
+const weekInfo = ref<{ week_start: string; week_end: string } | null>(null)
+
+// Booking form
+const showBookingDialog = ref(false)
+const bookingFormError = ref<string | null>(null)
+const bookingForm = ref({
+  id: null as number | null,
+  user_id: '',
+  title: '',
+  description: '',
+  client_id: '',
+  start_time: '',
+  end_time: '',
+})
+
+// Client form
+const showClientDialog = ref(false)
+const clientForm = ref({
+  id: null as number | null,
+  name: '',
+  email: '',
+  phone: '',
+})
+
+// Delete confirmation
+const showDeleteDialog = ref(false)
+const deleteItem = ref<{ type: 'booking' | 'client'; id: number } | null>(null)
+
+const fetchBookings = async () => {
+  isLoadingBookings.value = true
+  error.value = null
+  try {
+    let url = `${API_BASE}/bookings`
+
+    // If a week is selected, add it as a query parameter
+    if (selectedWeekDate.value) {
+      const weekDate = selectedWeekDate.value.toISOString().split('T')[0]
+      url += `?week=${weekDate}`
+    }
+
+    const response = await fetchWithCsrf(url)
+    if (!response.ok) throw new Error('Failed to fetch bookings')
+
+    const data = await response.json()
+
+    // Handle both formats (resource collection or weekly endpoint response)
+    if (data.bookings) {
+      // Weekly endpoint response with bookings, week_start, and week_end
+      bookings.value = data.bookings
+      weekInfo.value = {
+        week_start: data.week_start,
+        week_end: data.week_end,
+      }
+    } else if (data.data) {
+      // Laravel Resource Collection format
+      bookings.value = data.data
+      weekInfo.value = null
+    } else {
+      bookings.value = []
+      weekInfo.value = null
+    }
+  } catch (e: any) {
+    error.value = e.message || 'Failed to load bookings'
+  } finally {
+    isLoadingBookings.value = false
+  }
+}
+
+const fetchClients = async () => {
+  isLoadingClients.value = true
+  error.value = null
+  try {
+    const response = await fetchWithCsrf(`${API_BASE}/clients`)
+    if (!response.ok) throw new Error('Failed to fetch clients')
+    const data = await response.json()
+    clients.value = data.data || data
+  } catch (e: any) {
+    error.value = e.message || 'Failed to load clients'
+  } finally {
+    isLoadingClients.value = false
+  }
+}
+
+const fetchUsers = async () => {
+  try {
+    const response = await fetchWithCsrf(`${API_BASE}/users`)
+    if (!response.ok) throw new Error('Failed to fetch users')
+    const data = await response.json()
+    users.value = data.data || data
+  } catch (e: any) {
+    console.error('Failed to load users:', e.message)
+  }
+}
+
+const saveBooking = async () => {
+  bookingFormError.value = null
+  try {
+    const url = bookingForm.value.id
+      ? `${API_BASE}/bookings/${bookingForm.value.id}`
+      : `${API_BASE}/bookings`
+    const method = bookingForm.value.id ? 'PUT' : 'POST'
+
+    const response = await fetchWithCsrf(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: parseInt(bookingForm.value.user_id),
+        title: bookingForm.value.title,
+        description: bookingForm.value.description || null,
+        client_id: parseInt(bookingForm.value.client_id),
+        start_time: bookingForm.value.start_time,
+        end_time: bookingForm.value.end_time,
+      }),
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      // Extract validation errors from Laravel response
+      if (data.errors) {
+        // Get the first error message from the errors object
+        const firstError = Object.values(data.errors)[0]
+        throw new Error(Array.isArray(firstError) ? firstError[0] : firstError)
+      }
+      throw new Error(data.message || 'Failed to save booking')
+    }
+
+    success.value = bookingForm.value.id
+      ? 'Booking updated successfully!'
+      : 'Booking created successfully!'
+    showBookingDialog.value = false
+    resetBookingForm()
+    await fetchBookings()
+  } catch (e: any) {
+    bookingFormError.value = e.message || 'Failed to save booking'
+  }
+}
+
+const saveClient = async () => {
+  error.value = null
+  success.value = null
+  try {
+    const url = clientForm.value.id
+      ? `${API_BASE}/clients/${clientForm.value.id}`
+      : `${API_BASE}/clients`
+    const method = clientForm.value.id ? 'PUT' : 'POST'
+
+    const response = await fetchWithCsrf(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: clientForm.value.name,
+        email: clientForm.value.email || null,
+        phone: clientForm.value.phone || null,
+      }),
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.message || 'Failed to save client')
+    }
+
+    success.value = clientForm.value.id
+      ? 'Client updated successfully!'
+      : 'Client created successfully!'
+    showClientDialog.value = false
+    resetClientForm()
+    await fetchClients()
+  } catch (e: any) {
+    error.value = e.message || 'Failed to save client'
+  }
+}
+
+const confirmDelete = async () => {
+  if (!deleteItem.value) return
+
+  error.value = null
+  success.value = null
+  const itemType = deleteItem.value.type
+  try {
+    const url =
+      deleteItem.value.type === 'booking'
+        ? `${API_BASE}/bookings/${deleteItem.value.id}`
+        : `${API_BASE}/clients/${deleteItem.value.id}`
+
+    const response = await fetchWithCsrf(url, {
+      method: 'DELETE',
+    })
+
+    if (!response.ok) throw new Error(`Failed to delete ${deleteItem.value.type}`)
+
+    success.value = `${deleteItem.value.type === 'booking' ? 'Booking' : 'Client'} deleted successfully!`
+    showDeleteDialog.value = false
+    deleteItem.value = null
+
+    if (itemType === 'booking') {
+      await fetchBookings()
+    } else {
+      await fetchClients()
+    }
+  } catch (e: any) {
+    error.value = e.message || 'Failed to delete item'
+  }
+}
+
+const editBooking = (booking: Booking) => {
+  bookingForm.value = {
+    id: booking.id,
+    user_id: booking.user_id.toString(),
+    title: booking.title,
+    description: booking.description || '',
+    client_id: booking.client_id.toString(),
+    start_time: booking.start_time.slice(0, 16),
+    end_time: booking.end_time.slice(0, 16),
+  }
+  showBookingDialog.value = true
+}
+
+const editClient = (client: Client) => {
+  clientForm.value = {
+    id: client.id,
+    name: client.name,
+    email: client.email || '',
+    phone: client.phone || '',
+  }
+  showClientDialog.value = true
+}
+
+const openDeleteDialog = (type: 'booking' | 'client', id: number) => {
+  deleteItem.value = { type, id }
+  showDeleteDialog.value = true
+}
+
+const resetBookingForm = () => {
+  bookingFormError.value = null
+  bookingForm.value = {
+    id: null,
+    user_id: '',
+    title: '',
+    description: '',
+    client_id: '',
+    start_time: '',
+    end_time: '',
+  }
+}
+
+const resetClientForm = () => {
+  clientForm.value = {
+    id: null,
+    name: '',
+    email: '',
+    phone: '',
+  }
+}
+
+const formatDateTime = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+const sortedBookings = computed(() => {
+  return [...bookings.value].sort((a, b) => {
+    return new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
+  })
+})
+
+const formatWeekRange = computed(() => {
+  if (!weekInfo.value) return null
+
+  const start = new Date(weekInfo.value.week_start)
+  const end = new Date(weekInfo.value.week_end)
+
+  const formatOptions: Intl.DateTimeFormatOptions = {
+    month: 'short',
+    day: 'numeric',
+  }
+
+  return `${start.toLocaleDateString('en-US', formatOptions)} - ${end.toLocaleDateString('en-US', formatOptions)}, ${end.getFullYear()}`
+})
+
+const clearWeekFilter = () => {
+  selectedWeekDate.value = null
+  selectedWeekDateString.value = ''
+}
+
+const handleWeekDateChange = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  selectedWeekDateString.value = input.value
+  if (input.value) {
+    selectedWeekDate.value = new Date(input.value + 'T00:00:00')
+  } else {
+    selectedWeekDate.value = null
+  }
+}
+
+// Watch for changes in selected week date
+watch(selectedWeekDate, () => {
+  fetchBookings()
+})
+
+onMounted(() => {
+  fetchBookings()
+  fetchClients()
+  fetchUsers()
+})
+</script>

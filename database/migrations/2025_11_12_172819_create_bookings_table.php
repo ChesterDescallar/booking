@@ -21,7 +21,6 @@ return new class extends Migration
             $table->dateTime('end_time');
             $table->timestamps();
 
-            // Add an index to improve query performance for overlap checks
             $table->index(['user_id', 'start_time', 'end_time']);
         });
     }

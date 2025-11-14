@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
+use App\Http\Resources\ClientResource;
 use App\Models\Client;
 use Illuminate\Http\Request;
 
@@ -15,7 +16,7 @@ class ClientController extends Controller
             ->orderBy('name')
             ->get();
 
-        return response()->json($clients);
+        return ClientResource::collection($clients);
     }
 
     public function store(StoreClientRequest $request)
@@ -26,13 +27,15 @@ class ClientController extends Controller
             'phone' => $request->validated()['phone'],
         ]);
 
-        return response()->json($client, 201);
+        return (new ClientResource($client))
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function show(Client $client)
     {
         $client->loadCount('bookings');
-        return response()->json($client);
+        return new ClientResource($client);
     }
 
     public function update(UpdateClientRequest $request, Client $client)
@@ -43,7 +46,7 @@ class ClientController extends Controller
             'phone' => $request->validated()['phone'],
         ]);
 
-        return response()->json($client);
+        return new ClientResource($client);
     }
 
     public function destroy(Client $client)

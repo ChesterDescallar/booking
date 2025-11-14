@@ -3,6 +3,7 @@
 namespace App\Rules;
 
 use App\Models\Booking;
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Contracts\Validation\DataAwareRule;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -41,14 +42,11 @@ class NoBookingOverlap implements ValidationRule, DataAwareRule
             return;
         }
 
-        // Convert to Carbon instances for proper comparison
-        $start = \Carbon\Carbon::parse($startTime);
-        $end = \Carbon\Carbon::parse($endTime);
+        $start = Carbon::parse($startTime);
+        $end = Carbon::parse($endTime);
 
         $query = Booking::where('user_id', $userId)
             ->where(function ($q) use ($start, $end) {
-                // Check if new booking overlaps with existing bookings
-                // Overlaps if: new_start < existing_end AND new_end > existing_start
                 $q->where('start_time', '<', $end)
                   ->where('end_time', '>', $start);
             });

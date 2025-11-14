@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ClientController;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -9,7 +10,7 @@ use Inertia\Inertia;
 Route::get('/', function () {
     // Auto-login for development (create or get first user)
     if (!auth()->check()) {
-        $user = \App\Models\User::firstOrCreate(
+        $user = User::firstOrCreate(
             ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin User',
@@ -44,6 +45,7 @@ Route::prefix('api')->middleware('auth')->group(function () {
 
     // Users
     Route::get('/users', function () {
-        return response()->json(User::select('id', 'name', 'email')->orderBy('name')->get());
+        $users = User::select('id', 'name', 'email')->orderBy('name')->get();
+        return UserResource::collection($users);
     })->name('users.index');
 });

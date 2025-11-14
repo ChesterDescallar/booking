@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBookingRequest;
 use App\Http\Requests\UpdateBookingRequest;
+use App\Http\Resources\BookingResource;
 use App\Models\Booking;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -23,9 +24,9 @@ class BookingController extends Controller
 
         // If week parameter is provided, filter by week
         if ($request->has('week')) {
-            $date = Carbon::parse($request->week);
-            $startOfWeek = $date->copy()->startOfWeek(Carbon::MONDAY);
-            $endOfWeek = $date->copy()->endOfWeek(Carbon::SUNDAY);
+            $date = CarbonImmutable::parse($request->week);
+            $startOfWeek = $date->startOfWeek(CarbonImmutable::MONDAY);
+            $endOfWeek = $date->endOfWeek(CarbonImmutable::SUNDAY);
 
             $query->where(function ($q) use ($startOfWeek, $endOfWeek) {
                 $q->whereBetween('start_time', [$startOfWeek, $endOfWeek])
@@ -39,7 +40,7 @@ class BookingController extends Controller
             $bookings = $query->orderBy('start_time')->get();
 
             return response()->json([
-                'bookings' => $bookings,
+                'bookings' => BookingResource::collection($bookings),
                 'week_start' => $startOfWeek->toISOString(),
                 'week_end' => $endOfWeek->toISOString(),
             ]);
@@ -47,7 +48,7 @@ class BookingController extends Controller
 
         // Default: return all bookings
         $bookings = $query->orderBy('start_time', 'desc')->get();
-        return response()->json($bookings);
+        return BookingResource::collection($bookings);
     }
 
     /**
@@ -58,7 +59,9 @@ class BookingController extends Controller
         $booking = Booking::create($request->validated());
         $booking->load(['client', 'user']);
 
-        return response()->json($booking, 201);
+        return (new BookingResource($booking))
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -71,7 +74,7 @@ class BookingController extends Controller
         }
 
         $booking->load(['client', 'user']);
-        return response()->json($booking);
+        return new BookingResource($booking);
     }
 
     /**
@@ -82,7 +85,7 @@ class BookingController extends Controller
         $booking->update($request->validated());
         $booking->load(['client', 'user']);
 
-        return response()->json($booking);
+        return new BookingResource($booking);
     }
 
     /**

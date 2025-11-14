@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Client;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,8 +22,8 @@ class BookingFactory extends Factory
         $endTime = (clone $startTime)->modify('+' . fake()->numberBetween(1, 4) . ' hours');
 
         return [
-            'user_id' => \App\Models\User::factory(),
-            'client_id' => \App\Models\Client::factory(),
+            'user_id' => User::factory(),
+            'client_id' => Client::factory(),
             'title' => fake()->sentence(3),
             'description' => fake()->optional()->paragraph(),
             'start_time' => $startTime,

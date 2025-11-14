@@ -1,23 +1,3 @@
-<script setup lang="ts">
-import { useBookings, useDeleteBooking } from '../hooks/useBookings';
-
-const { data: bookingsData, isLoading, isError, error } = useBookings();
-const deleteBooking = useDeleteBooking();
-
-const handleDelete = (id: number) => {
-  if (confirm('Are you sure you want to delete this booking?')) {
-    deleteBooking.mutate(id, {
-      onSuccess: () => {
-        alert('Booking deleted successfully!');
-      },
-      onError: (error) => {
-        alert(`Error deleting booking: ${error.message}`);
-      },
-    });
-  }
-};
-</script>
-
 <template>
   <div class="bookings-list">
     <h2 class="text-2xl font-bold mb-4">Bookings</h2>
@@ -86,3 +66,23 @@ const handleDelete = (id: number) => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useBookings, useDeleteBooking } from '../hooks/useBookings';
+
+const { data: bookingsData, isLoading, isError, error } = useBookings();
+const deleteBooking = useDeleteBooking();
+
+const handleDelete = (id: number) => {
+  if (confirm('Are you sure you want to delete this booking?')) {
+    deleteBooking.mutate(id, {
+      onSuccess: () => {
+        alert('Booking deleted successfully!');
+      },
+      onError: (error) => {
+        alert(`Error deleting booking: ${error.message}`);
+      },
+    });
+  }
+};
+</script>

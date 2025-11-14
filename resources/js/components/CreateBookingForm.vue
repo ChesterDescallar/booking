@@ -1,40 +1,3 @@
-<script setup lang="ts">
-import { ref } from 'vue';
-import { useCreateBooking } from '../hooks/useBookings';
-import { useClients } from '../hooks/useClients';
-import type { CreateBookingInput } from '../types/api';
-
-const createBooking = useCreateBooking();
-const { data: clientsData } = useClients();
-
-const form = ref<CreateBookingInput>({
-  client_id: 0,
-  title: '',
-  description: '',
-  start_time: '',
-  end_time: '',
-});
-
-const handleSubmit = () => {
-  createBooking.mutate(form.value, {
-    onSuccess: () => {
-      alert('Booking created successfully!');
-      // Reset form
-      form.value = {
-        client_id: 0,
-        title: '',
-        description: '',
-        start_time: '',
-        end_time: '',
-      };
-    },
-    onError: (error) => {
-      alert(`Error creating booking: ${error.message}`);
-    },
-  });
-};
-</script>
-
 <template>
   <div class="create-booking-form">
     <h2 class="text-2xl font-bold mb-4">Create New Booking</h2>
@@ -127,3 +90,40 @@ const handleSubmit = () => {
     </form>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useCreateBooking } from '../hooks/useBookings';
+import { useClients } from '../hooks/useClients';
+import type { CreateBookingInput } from '../types/api';
+
+const createBooking = useCreateBooking();
+const { data: clientsData } = useClients();
+
+const form = ref<CreateBookingInput>({
+  client_id: 0,
+  title: '',
+  description: '',
+  start_time: '',
+  end_time: '',
+});
+
+const handleSubmit = () => {
+  createBooking.mutate(form.value, {
+    onSuccess: () => {
+      alert('Booking created successfully!');
+      // Reset form
+      form.value = {
+        client_id: 0,
+        title: '',
+        description: '',
+        start_time: '',
+        end_time: '',
+      };
+    },
+    onError: (error) => {
+      alert(`Error creating booking: ${error.message}`);
+    },
+  });
+};
+</script>

@@ -1,3 +1,15 @@
+<template>
+  <div class="space-y-2">
+    <Label v-if="label" :for="id">{{ label }}</Label>
+    <Input
+      :id="id"
+      type="datetime-local"
+      :value="formattedValue"
+      @input="handleInput"
+    />
+  </div>
+</template>
+
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { Input } from '@/components/ui/input'
@@ -42,15 +54,3 @@ const formattedValue = computed({
   },
 })
 </script>
-
-<template>
-  <div class="space-y-2">
-    <Label v-if="label" :for="id">{{ label }}</Label>
-    <Input
-      :id="id"
-      type="datetime-local"
-      :value="formattedValue"
-      @input="handleInput"
-    />
-  </div>
-</template>

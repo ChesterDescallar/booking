@@ -41,15 +41,16 @@ class BookingTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJson([
-                'title' => 'Test Booking',
-                'description' => 'Test Description',
-                'client_id' => $this->client->id,
-                'user_id' => $this->user->id,
-                'client' => [
-                    'id' => $this->client->id,
-                ],
-                'user' => [
-                    'id' => $this->user->id,
+                'data' => [
+                    'title' => 'Test Booking',
+                    'client_id' => $this->client->id,
+                    'user_id' => $this->user->id,
+                    'client' => [
+                        'id' => $this->client->id,
+                    ],
+                    'user' => [
+                        'id' => $this->user->id,
+                    ],
                 ],
             ]);
 
@@ -140,7 +141,7 @@ class BookingTest extends TestCase
 
         $response->assertStatus(200);
 
-        $bookings = $response->json();
+        $bookings = $response->json('data');
         $this->assertIsArray($bookings);
         $this->assertGreaterThanOrEqual(2, count($bookings));
 
@@ -208,12 +209,14 @@ class BookingTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson([
-                'title' => 'Updated Booking',
-                'client' => [
-                    'id' => $this->client->id,
-                ],
-                'user' => [
-                    'id' => $this->user->id,
+                'data' => [
+                    'title' => 'Updated Booking',
+                    'client' => [
+                        'id' => $this->client->id,
+                    ],
+                    'user' => [
+                        'id' => $this->user->id,
+                    ],
                 ],
             ]);
 
