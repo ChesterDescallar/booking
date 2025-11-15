@@ -142,6 +142,8 @@ touch database/database.sqlite
 
 Run the database migrations and seed demo data:
 
+MAKE SURE TO UPDATE YOUR DB_DATABASE to point to the newly generated database\database.sqlite -> Right click on the file copy path and paste it on the env
+
 **Windows:**
 ```bash
 setup-demo.bat
