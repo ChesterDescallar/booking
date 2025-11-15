@@ -2,6 +2,32 @@
 
 A modern, full-stack booking management system that allows users to efficiently manage appointments and client bookings with intelligent overlap prevention and weekly calendar views.
 
+## Quick Start
+
+Get started in 5 minutes:
+
+```bash
+# 1. Install dependencies
+composer install && npm install
+
+# 2. Setup environment
+cp .env.example .env
+php artisan key:generate
+
+# 3. Configure for SQLite (edit .env)
+# Set: DB_CONNECTION=sqlite
+
+# 4. Create database and seed data
+touch database/database.sqlite
+php artisan migrate:fresh --seed --seeder=DemoDataSeeder
+
+# 5. Start servers (in separate terminals)
+php artisan serve    # Terminal 1
+npm run dev          # Terminal 2
+
+# 6. Open http://localhost:8000
+```
+
 ## Overview
 
 This application provides a complete solution for managing bookings with real-time validation, preventing scheduling conflicts, and maintaining client relationships. Built with modern web technologies, it offers a seamless user experience with a clean, intuitive interface.
@@ -32,7 +58,7 @@ This application provides a complete solution for managing bookings with real-ti
 ### Backend
 - **[Laravel 12](https://laravel.com/)** - Latest PHP framework with modern features
 - **PHP 8.2+** - Modern PHP with type safety and performance improvements
-- **SQLite** - Lightweight database perfect for demos and small deployments (easily switchable to MySQL/PostgreSQL)
+- **SQLite** - Lightweight, zero-configuration database (easily switchable to MySQL/PostgreSQL)
 - **RESTful API** - Clean, resourceful API architecture with Laravel API Resources
 
 ### Frontend
@@ -53,71 +79,275 @@ This application provides a complete solution for managing bookings with real-ti
 ### Prerequisites
 
 Ensure you have the following installed:
-- PHP 8.2 or higher with SQLite extension
+- PHP 8.2 or higher
 - Composer
 - Node.js 20+ and npm
 
-### Quick Start
+### Quick Start (Recommended - No XAMPP Required)
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd booking
-   ```
+This is the easiest way to get started using Laravel's built-in server and SQLite:
 
-2. **Install dependencies**
-   ```bash
-   composer install
-   npm install
-   ```
+#### 1. **Clone the repository**
+```bash
+git clone <repository-url>
+cd booking
+```
 
-3. **Configure environment**
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
+#### 2. **Install dependencies**
+```bash
+composer install
+npm install
+```
 
-4. **Set up demo database**
+#### 3. **Configure environment**
+```bash
+# Windows
+copy .env.example .env
 
-   **Windows:**
-   ```bash
-   setup-demo.bat
-   ```
+# Linux/Mac
+cp .env.example .env
+```
 
-   **Linux/Mac:**
-   ```bash
-   chmod +x setup-demo.sh
-   ./setup-demo.sh
-   ```
+Then generate the application key:
+```bash
+php artisan key:generate
+```
 
-   **Or manually:**
-   ```bash
-   touch database/database.sqlite
-   php artisan migrate:fresh
-   php artisan db:seed --class=DemoDataSeeder
-   ```
+#### 4. **Update .env file for SQLite**
 
-5. **Build frontend assets**
-   ```bash
-   npm run build
-   ```
+Edit the `.env` file and update the following settings:
 
-7. **Start the application**
-   ```bash
-   php artisan serve
-   ```
+```env
+APP_URL=http://localhost:8000
 
-   Visit: `http://localhost:8000`
+DB_CONNECTION=sqlite
+# Comment out or remove these MySQL settings:
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=bookingapp
+# DB_USERNAME=root
+# DB_PASSWORD=
+```
 
-### Development Mode
+#### 5. **Create SQLite database**
+```bash
+# Windows
+type nul > database\database.sqlite
 
-For local development with hot module replacement:
+# Linux/Mac
+touch database/database.sqlite
+```
 
+#### 6. **Set up demo database**
+
+Run the database migrations and seed demo data:
+
+**Windows:**
+```bash
+setup-demo.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x setup-demo.sh
+./setup-demo.sh
+```
+
+**Or manually:**
+```bash
+php artisan migrate:fresh
+php artisan db:seed --class=DemoDataSeeder
+```
+
+#### 7. **Start the development servers**
+
+Open two terminal windows in the project directory:
+
+**Terminal 1 - Laravel server:**
+```bash
+php artisan serve
+```
+
+**Terminal 2 - Vite dev server (for hot reload):**
 ```bash
 npm run dev
 ```
 
-This will start the Vite development server with automatic reloading when you make changes.
+#### 8. **Access the application**
+
+Open your browser and navigate to:
+```
+http://localhost:8000
+```
+
+The application will automatically log you in as **admin@example.com** in development mode.
+
+#### 9. **Stopping the servers**
+
+To stop the development servers:
+- Press `Ctrl+C` in each terminal window
+- Or simply close the terminal windows
+
+---
+
+### API Access
+
+The application provides RESTful API endpoints for managing bookings, clients, and users.
+
+**Base URL:** `http://localhost:8000`
+
+**Authentication:** API routes require session-based authentication. Access the home page first to get authenticated, then use the session cookie for API calls.
+
+**Example API endpoints:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/bookings` | GET | Get all bookings |
+| `/api/bookings` | POST | Create a new booking |
+| `/api/bookings/1` | GET | Get specific booking |
+| `/api/bookings/1` | PUT | Update a booking |
+| `/api/bookings/1` | DELETE | Delete a booking |
+| `/api/bookings?week=2025-01-15` | GET | Filter bookings by week |
+| `/api/clients` | GET | Get all clients |
+| `/api/users` | GET | Get all users |
+
+**Testing with cURL:**
+```bash
+# First, get authenticated
+curl -c cookies.txt http://localhost:8000
+
+# Then use the session for API calls
+curl -b cookies.txt http://localhost:8000/api/bookings
+curl -b cookies.txt http://localhost:8000/api/clients
+```
+
+**Testing with Postman:**
+1. Base URL: `http://localhost:8000`
+2. First visit `http://localhost:8000` in your browser to authenticate
+3. Copy the session cookie from browser dev tools
+4. Add the cookie to Postman headers or use Postman's cookie manager
+5. Make API requests to `/api/bookings`, `/api/clients`, etc.
+
+---
+
+### Alternative Setup: Using MySQL
+
+If you prefer MySQL over SQLite:
+
+#### Prerequisites
+- MySQL 5.7+ or MariaDB 10.3+ (standalone or via XAMPP)
+
+#### Configuration
+
+**1. Create MySQL database:**
+
+Using MySQL command line or phpMyAdmin:
+```sql
+CREATE DATABASE bookingapp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+**2. Update .env file:**
+```env
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bookingapp
+DB_USERNAME=root
+DB_PASSWORD=your_password_here
+```
+
+**3. Run migrations and seeders:**
+```bash
+php artisan migrate:fresh
+php artisan db:seed --class=DemoDataSeeder
+```
+
+**4. Start the server:**
+```bash
+php artisan serve
+```
+
+Visit: `http://localhost:8000`
+
+---
+
+### Alternative Setup: XAMPP (Legacy)
+
+If you must use XAMPP:
+
+**1. Place project in XAMPP directory:**
+```bash
+cd c:\xampp\htdocs\dashboard\projects\bookingapplication
+```
+
+**2. Update .env:**
+```env
+APP_URL=http://localhost/dashboard/projects/bookingapplication/booking/public
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bookingapp
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+**3. Create database via phpMyAdmin** at `http://localhost/phpmyadmin`
+
+**4. Run migrations:**
+```bash
+php artisan migrate:fresh
+php artisan db:seed --class=DemoDataSeeder
+```
+
+**5. Access at:**
+```
+http://localhost/dashboard/projects/bookingapplication/booking/public
+```
+
+## Development Workflow
+
+### Daily Development Routine
+
+1. **Start the servers** (in project directory):
+   ```bash
+   # Terminal 1
+   php artisan serve
+
+   # Terminal 2
+   npm run dev
+   ```
+
+2. **Access the application**: Open `http://localhost:8000` in your browser
+
+3. **Make changes**: Edit files and see changes reflected immediately with hot reload
+
+4. **Stop the servers**: Press `Ctrl+C` in each terminal when done
+
+### Common Commands
+
+```bash
+# Database operations
+php artisan migrate:fresh        # Reset database
+php artisan db:seed --class=DemoDataSeeder  # Seed demo data
+php artisan migrate:fresh --seed --seeder=DemoDataSeeder  # Reset + seed
+
+# Testing
+php artisan test                 # Run all tests
+php artisan test --filter=BookingTest  # Run specific tests
+
+# Cache clearing
+php artisan cache:clear          # Clear application cache
+php artisan config:clear         # Clear config cache
+php artisan route:clear          # Clear route cache
+
+# Build for production
+npm run build                    # Compile production assets
+```
+
+---
 
 ## Usage
 
@@ -172,13 +402,23 @@ The system will automatically check for overlapping bookings and display an erro
 
 ## API Documentation
 
-All API endpoints require authentication via Laravel's session-based auth.
+
+**Base URL:** `http://localhost:8000` (when using `php artisan serve`)
+
+### Authentication
+
+The API uses Laravel's session-based authentication:
+1. Visit `http://localhost:8000` in your browser (auto-login as admin@example.com in development)
+2. Use the session cookie for subsequent API calls
+3. For testing, you can use tools like Postman with cookie management or cURL with `-b cookies.txt`
 
 ### Bookings API
 
+**Endpoints:**
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/bookings` | List all bookings |
+| GET | `/api/bookings` | List all bookings (sorted by start_time DESC) |
 | GET | `/api/bookings?week=YYYY-MM-DD` | Filter bookings by week |
 | POST | `/api/bookings` | Create a new booking |
 | GET | `/api/bookings/{id}` | Get specific booking details |
@@ -227,6 +467,55 @@ All API endpoints require authentication via Laravel's session-based auth.
 |--------|----------|-------------|
 | GET | `/api/users` | List all users |
 
+## Troubleshooting
+
+### Common Issues
+
+**Port 8000 already in use:**
+```bash
+# Use a different port
+php artisan serve --port=8001
+```
+
+**Database locked (SQLite):**
+```bash
+# Close any database browsers (DB Browser for SQLite, etc.)
+# Or restart the server
+```
+
+**Vite not connecting:**
+```bash
+# Make sure npm run dev is running
+# Check that you're accessing http://localhost:8000 (not 127.0.0.1)
+```
+
+**Session/Auth issues:**
+```bash
+# Clear cache and sessions
+php artisan cache:clear
+php artisan config:clear
+
+# Check APP_KEY is set in .env
+php artisan key:generate
+```
+
+**Database migration errors:**
+```bash
+# Reset the database
+php artisan migrate:fresh --seed --seeder=DemoDataSeeder
+```
+
+**CSS/JS not loading:**
+```bash
+# Rebuild assets
+npm run build
+
+# Or run dev server
+npm run dev
+```
+
+---
+
 ## Testing
 
 ### Running Tests
@@ -245,7 +534,6 @@ Run with coverage:
 ```bash
 php artisan test --coverage
 ```
-
 
 ### Booking Overlap Prevention
 
@@ -270,88 +558,4 @@ The weekly filtering feature:
 - Calculates the week boundaries (Monday start, Sunday end)
 - Returns all bookings within that week
 - Includes week start/end dates in response
-
-
-## Deployment
-
-### Using SQLite in Production
-
-SQLite is already configured and ready to deploy! It's perfect for:
-- Demo applications
-- Small to medium traffic sites
-- Single-server deployments
-- Easy backups (just copy the database file)
-
-To use SQLite in production, your `.env` already has:
-```env
-DB_CONNECTION=sqlite
-```
-
-The database file is at `database/database.sqlite` and is automatically created when you run migrations.
-
-### Switching to PostgreSQL/MySQL
-
-For high-traffic production environments, update `.env`:
-
-```env
-DB_CONNECTION=pgsql  # or mysql
-DB_HOST=your-host
-DB_PORT=5432        # or 3306 for MySQL
-DB_DATABASE=your-database
-DB_USERNAME=your-username
-DB_PASSWORD=your-password
-```
-
-Then run:
-```bash
-php artisan migrate:fresh
-php artisan db:seed --class=DemoDataSeeder
-```
-
-### Deployment Platforms
-
-**Recommended Platforms:**
-
-1. **Railway.app** (Easiest)
-   - Connects to GitHub automatically
-   - Auto-detects Laravel projects
-   - Provides free PostgreSQL database
-   - One-click deployment
-   - Free tier available
-
-2. **Render.com**
-   - Free tier available
-   - Auto-deploy from GitHub
-   - Built-in database options
-   - Simple configuration
-
-3. **Fly.io**
-   - Free allowance
-   - Global deployment
-   - Good for SQLite apps
-   - Simple CLI: `fly launch && fly deploy`
-
-4. **DigitalOcean App Platform**
-   - $5/month
-   - Easy Laravel deployment
-   - Managed databases available
-
-### Deployment Checklist
-
-Before deploying:
-- [ ] Set `APP_ENV=production` in `.env`
-- [ ] Set `APP_DEBUG=false` in `.env`
-- [ ] Generate new `APP_KEY`: `php artisan key:generate`
-- [ ] Run `npm run build` to compile production assets
-- [ ] Run migrations: `php artisan migrate --force`
-- [ ] Seed demo data: `php artisan db:seed --class=DemoDataSeeder`
-- [ ] Disable auto-login in routes/web.php for production
-
-### CI/CD Configuration
-
-The application is ready for CI/CD:
-- Vite wayfinder plugin conditionally loads (dev only)
-- Tests run on SQLite in-memory database
-- Build process optimized for production
-- All assets compile without external dependencies
 
