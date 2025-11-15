@@ -364,7 +364,7 @@ import {
 } from '@/components/ui/table'
 
 // API base URL
-const API_BASE = '/dashboard/projects/bookingapplication/booking/public/api'
+const API_BASE = '/api'
 
 interface User {
   id: number

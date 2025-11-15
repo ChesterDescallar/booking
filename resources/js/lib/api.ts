@@ -2,7 +2,7 @@ import axios, { type AxiosInstance } from 'axios';
 
 // Create axios instance with base configuration
 const apiClient: AxiosInstance = axios.create({
-  baseURL: '/dashboard/projects/bookingapplication/booking/public/api',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
