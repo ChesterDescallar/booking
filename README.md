@@ -28,52 +28,6 @@ npm run dev          # Terminal 2
 # 6. Open http://localhost:8000
 ```
 
-## Overview
-
-This application provides a complete solution for managing bookings with real-time validation, preventing scheduling conflicts, and maintaining client relationships. Built with modern web technologies, it offers a seamless user experience with a clean, intuitive interface.
-
-## Features
-
-### 📅 Booking Management
-- **Create, Edit, and Delete Bookings** - Full CRUD operations for managing appointments
-- **Overlap Prevention** - Automatic detection and prevention of conflicting bookings
-- **Weekly Calendar View** - Filter and view bookings by week with date picker
-- **Real-time Validation** - Immediate feedback with modal-based error display
-- **User & Client Assignment** - Associate bookings with specific users and clients
-
-### 👥 Client Management
-- **Client Database** - Maintain a complete database of clients
-- **Contact Information** - Store client names, emails, and phone numbers
-- **Quick Selection** - Dropdown selection for easy booking assignment
-
-### 💡 User Interface
-- **Modern Design** - Clean, professional interface with Shadcn UI components
-- **Responsive Tables** - Sortable and filterable data tables
-- **Modal Forms** - Intuitive modal-based booking creation and editing
-- **Date Pickers** - Easy-to-use date and time selection
-- **Error Handling** - Clear, user-friendly error messages displayed in context
-
-## Technology Stack
-
-### Backend
-- **[Laravel 12](https://laravel.com/)** - Latest PHP framework with modern features
-- **PHP 8.2+** - Modern PHP with type safety and performance improvements
-- **SQLite** - Lightweight, zero-configuration database (easily switchable to MySQL/PostgreSQL)
-- **RESTful API** - Clean, resourceful API architecture with Laravel API Resources
-
-### Frontend
-- **[Vue 3](https://vuejs.org/)** - Progressive JavaScript framework with Composition API
-- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript for better code quality
-- **[Inertia.js](https://inertiajs.com/)** - Modern monolith approach (no separate API layer needed)
-- **[Shadcn/ui](https://ui.shadcn.com/)** - Beautiful, accessible component library
-- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
-- **[Vite](https://vitejs.dev/)** - Lightning-fast build tool
-
-### Testing
-- **PHPUnit** - PHP testing framework
-- **Feature Tests** - Complete test coverage (11 tests, 29 assertions)
-- **SQLite** - In-memory database for fast testing
-
 ## Installation
 
 ### Prerequisites
@@ -192,6 +146,50 @@ To stop the development servers:
 
 ---
 
+
+## Overview
+
+This application provides a complete solution for managing bookings with real-time validation, preventing scheduling conflicts, and maintaining client relationships. Built with modern web technologies, it offers a seamless user experience with a clean, intuitive interface.
+
+## Features
+
+### 📅 Booking Management
+- **Create, Edit, and Delete Bookings** - Full CRUD operations for managing appointments
+- **Overlap Prevention** - Automatic detection and prevention of conflicting bookings
+- **Weekly Calendar View** - Filter and view bookings by week with date picker
+- **Real-time Validation** - Immediate feedback with modal-based error display
+- **User & Client Assignment** - Associate bookings with specific users and clients
+
+### 👥 Client Management
+- **Client Database** - Maintain a complete database of clients
+- **Contact Information** - Store client names, emails, and phone numbers
+- **Quick Selection** - Dropdown selection for easy booking assignment
+
+### 💡 User Interface
+- **Modern Design** - Clean, professional interface with Shadcn UI components
+- **Responsive Tables** - Sortable and filterable data tables
+- **Modal Forms** - Intuitive modal-based booking creation and editing
+- **Date Pickers** - Easy-to-use date and time selection
+- **Error Handling** - Clear, user-friendly error messages displayed in context
+
+## Technology Stack
+
+### Backend
+- **[Laravel 12](https://laravel.com/)** - Latest PHP framework with modern features
+- **PHP 8.2+** - Modern PHP with type safety and performance improvements
+- **SQLite** - Lightweight, zero-configuration database (easily switchable to MySQL/PostgreSQL)
+- **RESTful API** - Clean, resourceful API architecture with Laravel API Resources
+
+### Frontend
+- **[Vue 3](https://vuejs.org/)** - Progressive JavaScript framework with Composition API
+- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript for better code quality
+- **[Inertia.js](https://inertiajs.com/)** - Modern monolith approach (no separate API layer needed)
+- **[Shadcn/ui](https://ui.shadcn.com/)** - Beautiful, accessible component library
+- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
+- **[Vite](https://vitejs.dev/)** - Lightning-fast build tool
+
+
+
 ### API Access
 
 The application provides RESTful API endpoints for managing bookings, clients, and users.
@@ -275,59 +273,6 @@ Visit: `http://localhost:8000`
 
 ---
 
-### Alternative Setup: XAMPP (Legacy)
-
-If you must use XAMPP:
-
-**1. Place project in XAMPP directory:**
-```bash
-cd c:\xampp\htdocs\dashboard\projects\bookingapplication
-```
-
-**2. Update .env:**
-```env
-APP_URL=http://localhost/dashboard/projects/bookingapplication/booking/public
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=bookingapp
-DB_USERNAME=root
-DB_PASSWORD=
-```
-
-**3. Create database via phpMyAdmin** at `http://localhost/phpmyadmin`
-
-**4. Run migrations:**
-```bash
-php artisan migrate:fresh
-php artisan db:seed --class=DemoDataSeeder
-```
-
-**5. Access at:**
-```
-http://localhost/dashboard/projects/bookingapplication/booking/public
-```
-
-## Development Workflow
-
-### Daily Development Routine
-
-1. **Start the servers** (in project directory):
-   ```bash
-   # Terminal 1
-   php artisan serve
-
-   # Terminal 2
-   npm run dev
-   ```
-
-2. **Access the application**: Open `http://localhost:8000` in your browser
-
-3. **Make changes**: Edit files and see changes reflected immediately with hot reload
-
-4. **Stop the servers**: Press `Ctrl+C` in each terminal when done
-
 ### Common Commands
 
 ```bash
@@ -407,13 +352,6 @@ The system will automatically check for overlapping bookings and display an erro
 
 **Base URL:** `http://localhost:8000` (when using `php artisan serve`)
 
-### Authentication
-
-The API uses Laravel's session-based authentication:
-1. Visit `http://localhost:8000` in your browser (auto-login as admin@example.com in development)
-2. Use the session cookie for subsequent API calls
-3. For testing, you can use tools like Postman with cookie management or cURL with `-b cookies.txt`
-
 ### Bookings API
 
 **Endpoints:**
@@ -489,31 +427,6 @@ php artisan serve --port=8001
 ```bash
 # Make sure npm run dev is running
 # Check that you're accessing http://localhost:8000 (not 127.0.0.1)
-```
-
-**Session/Auth issues:**
-```bash
-# Clear cache and sessions
-php artisan cache:clear
-php artisan config:clear
-
-# Check APP_KEY is set in .env
-php artisan key:generate
-```
-
-**Database migration errors:**
-```bash
-# Reset the database
-php artisan migrate:fresh --seed --seeder=DemoDataSeeder
-```
-
-**CSS/JS not loading:**
-```bash
-# Rebuild assets
-npm run build
-
-# Or run dev server
-npm run dev
 ```
 
 ---
