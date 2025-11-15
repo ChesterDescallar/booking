@@ -69,7 +69,7 @@ class BookingController extends Controller
      */
     public function show(Booking $booking)
     {
-        // Allow viewing - in a real app, you might want role-based permissions
+        // Allow viewing - in a real app, this will be based on user roles/permissions
         $booking->load(['client', 'user']);
         return new BookingResource($booking);
     }
@@ -90,7 +90,7 @@ class BookingController extends Controller
      */
     public function destroy(Booking $booking)
     {
-        // Allow deletion - in a real app, you might want role-based permissions
+        // Allow deletion - in a real app, this will be based on user roles/permissions
         // For now, any authenticated user can delete any booking
         $booking->delete();
 

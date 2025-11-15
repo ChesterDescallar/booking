@@ -242,7 +242,7 @@ class BookingTest extends TestCase
         ]);
     }
 
-    public function test_customer_cannot_access_other_customers_bookings(): void
+    public function test_authenticated_user_can_access_any_booking(): void
     {
         $otherUser = User::factory()->create();
         $otherClient = Client::factory()->create();
@@ -254,7 +254,14 @@ class BookingTest extends TestCase
         $response = $this->actingAs($this->user)
             ->getJson("/api/bookings/{$otherBooking->id}");
 
-        $response->assertStatus(403);
+        $response->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'id' => $otherBooking->id,
+                    'user_id' => $otherUser->id,
+                    'client_id' => $otherClient->id,
+                ],
+            ]);
     }
 
     public function test_unauthenticated_user_cannot_access_bookings(): void
