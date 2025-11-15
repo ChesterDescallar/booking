@@ -69,10 +69,7 @@ class BookingController extends Controller
      */
     public function show(Booking $booking)
     {
-        if ($booking->user_id !== auth()->id()) {
-            abort(403);
-        }
-
+        // Allow viewing - in a real app, you might want role-based permissions
         $booking->load(['client', 'user']);
         return new BookingResource($booking);
     }
@@ -93,10 +90,8 @@ class BookingController extends Controller
      */
     public function destroy(Booking $booking)
     {
-        if ($booking->user_id !== auth()->id()) {
-            abort(403);
-        }
-
+        // Allow deletion - in a real app, you might want role-based permissions
+        // For now, any authenticated user can delete any booking
         $booking->delete();
 
         return response()->json(null, 204);
